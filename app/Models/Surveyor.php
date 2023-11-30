@@ -12,8 +12,6 @@ class Surveyor extends Model
 
     protected $fillable = [
         'name',
-        'email',
-        'phone',
     ];
 
     public function contracts(): HasMany
@@ -21,8 +19,13 @@ class Surveyor extends Model
         return $this->hasMany(Contract::class);
     }
 
-    // public function surveys(): HasMany
-    // {
-    //     return $this->hasMany(Survey::class);
-    // }
+    public function surveys(): HasMany
+    {
+        return $this->hasMany(Survey::class);
+    }
+
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(Assignment::class);
+    }
 }

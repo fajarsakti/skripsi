@@ -5,6 +5,12 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ContractResource\Pages;
 use App\Filament\Resources\ContractResource\RelationManagers;
 use App\Models\Contract;
+use App\Models\ContractType;
+use App\Models\Industry;
+use App\Models\Survey;
+use App\Models\Surveyor;
+use Filament\Actions\Action;
+use Filament\Actions\ButtonAction;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,121 +19,223 @@ use Filament\Tables\Table;
 use Filament\Tables\Columns\BadgeColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Forms\Components\Section;
+use Filament\Forms\FormsComponent;
+use Filament\Infolists\Infolist;
+use Filament\Infolists\Components\TextEntry;
+use Illuminate\Support\Facades\DB;
+use Filament\Infolists\Components\ImageEntry;
+use Filament\Infolists\Components\Section as SectionInfoList;
+use Filament\Tables\Filters\SelectFilter;
 
 class ContractResource extends Resource
 {
     protected static ?string $model = Contract::class;
 
-    protected static ?string $navigationGroup = 'Project Management';
+    protected static ?string $navigationGroup = 'Contract Management';
 
     protected static ?string $slug = 'contracts';
 
-    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
+    protected static ?string $recordTitleAttribute = 'pemberi_tugas';
 
-    public static function form(Form $form): Form
+    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
+
+    public static function getFormSchema(): array
     {
-
         $calculate = function ($get, $set) {
             $startDate = $get('tanggal_kontrak');
             $endDate = $get('selesai_kontrak');
+            $statusKontrak = $get('status_kontrak');
 
             if (!($startDate && $endDate)) {
+                $set('durasi_kontrak', null);
+                $set('status_kontrak', 'In Progress');
+                $contract = Contract::find($get('id')); // Replace 'id' with the actual primary key field name
+                // $contract->update(['durasi_kontrak' => null, 'is_available' => 1]); // Assuming is_available is 1 when status_kontrak is 'In Progress'
                 return;
             }
 
             $startDate = \Carbon\Carbon::parse($startDate);
             $endDate = \Carbon\Carbon::parse($endDate);
 
+            if (!$endDate) {
+                return;
+            }
+
+            if ($startDate->gt($endDate)) {
+                // If the start date is after the end date, this field is invalid
+                $set('durasi_kontrak', null);
+                $set('status_kontrak', 'In Progress');
+                $contract = Contract::find($get('id')); // Replace 'id' with the actual primary key field name
+                // $contract->update(['durasi_kontrak' => null, 'is_available' => 1]); // Assuming is_available is 1 when status_kontrak is 'In Progress'
+                return;
+            }
+
             $diffInDays = $startDate->diffInDays($endDate);
 
             $set('durasi_kontrak', $diffInDays);
+
+            if ($statusKontrak === 'Selesai' || $statusKontrak === 'Batal') {
+                $set('is_available', 0);
+            }
+
+            if ($startDate && $endDate) {
+                $set('status_kontrak', 'Selesai');
+            }
+
+            // if ($startDate) {
+            //     $set('status_kontrak', 'In Progress');
+            // } 
+
+            $contract = Contract::find($get('id')); // Replace 'id' with the actual primary key field name
+            $contract->update(['durasi_kontrak' => $diffInDays, 'is_available' => $get('is_available')]);
         };
 
+        return [
+            Section::make('Survey Information')
+                ->schema([
+                    Forms\Components\Select::make('surveys_id')
+                        ->label('ID Survey')
+                        ->options(Survey::all()->pluck('id')->toArray()),
+                    Forms\Components\Select::make('surveyors_id')
+                        ->label('Surveyor')
+                        ->options(Surveyor::all()->pluck('name', 'id')->toArray())
+                ])
+                ->columns(2),
+            Section::make('Contract Information')
+                ->schema([
+                    Forms\Components\TextInput::make('pemberi_tugas')
+                        ->label('Pemberi Tugas')
+                        ->required(),
+                    Forms\Components\Select::make('industries_id')
+                        ->options(Industry::all()->pluck('type', 'id')->toArray())
+                        ->required()
+                        ->label('Jenis Industri'),
+                    Forms\Components\Select::make('contract_types_id')
+                        ->options(ContractType::all()->pluck('type', 'id')->toArray())
+                        ->required()
+                        ->label('Tujuan Kontrak'),
+                    Forms\Components\TextInput::make('lokasi_proyek')
+                        ->label('Lokasi Proyek')
+                        ->required(),
+                    Forms\Components\DatePicker::make('tanggal_kontrak')
+                        ->label('Tanggal Kontrak')
+                        ->required()
+                        ->reactive()
+                        ->afterStateUpdated($calculate)
+                        ->rules('bail', 'before_or_equal_if_filled:selesai_kontrak'),
+                    Forms\Components\DatePicker::make('selesai_kontrak')
+                        ->label('Selesai Kontrak')
+                        ->reactive()
+                        ->afterStateUpdated($calculate)
+                        ->afterOrEqual('tanggal_kontrak')
+                        ->rules('bail', 'before_or_equal_if_filled:tanggal_kontrak'),
+                    Forms\Components\Select::make('status_kontrak')
+                        ->label('Status Kontrak')
+                        ->reactive()
+                        ->options([
+                            'Selesai' => 'Selesai',
+                            'In Progress' => 'In Progress',
+                            'Batal' => 'Batal',
+                        ])
+                        ->default('In Progress')
+                        ->afterStateUpdated(function ($state, $get, $set) {
+                            $selesaiKontrak = $get('selesai_kontrak');
+                            $statusKontrak = $get('status_kontrak');
+
+                            if ($statusKontrak === 'In Progress') {
+                                $set('selesai_kontrak', null);
+                                $set('durasi_kontrak', null);
+                                $set('is_available', 1);
+                                $contract = Contract::find($get('id')); // Replace 'id' with the actual primary key field name
+                                $contract->update(['durasi_kontrak' => null, 'is_available' => 1]); // Assuming is_available is 1 when status_kontrak is 'In Progress'
+                            } elseif ($statusKontrak === 'Batal') {
+                                $set('selesai_kontrak', null);
+                                $set('durasi_kontrak', null);
+                                $set('is_available', 0);
+                            } elseif ($statusKontrak === 'Selesai' && !$selesaiKontrak) {
+                                $set('status_kontrak', 'In Progress');
+                                $set('is_available', 1);
+                                // You can also add a message here to inform the user why status_kontrak was not updated
+                            } elseif ($statusKontrak === 'Selesai' || $statusKontrak === 'Batal') {
+                                $set('is_available', 0);
+                            }
+                        }),
+                    Forms\Components\TextInput::make('durasi_kontrak')
+                        ->disabled()
+                        ->label('Durasi Kontrak')
+                        ->suffix(' hari'),
+                ])
+                ->columns(2)
+        ];
+    }
+
+    public static function form(Form $form): Form
+    {
         return $form
-            ->schema([
-                Forms\Components\TextInput::make('pemberi_tugas')
-                    ->label('Pemberi Tugas')
-                    ->required(),
-                Forms\Components\TextInput::make('jenis_industri')
-                    ->label('Jenis Industri')
-                    ->required(),
-                Forms\Components\TextInput::make('tujuan_kontrak')
-                    ->label('Tujuan Kontrak')
-                    ->required(),
-                Forms\Components\TextInput::make('lokasi_proyek')
-                    ->label('Lokasi Proyek')
-                    ->required(),
-                Forms\Components\DatePicker::make('selesai_kontrak')
-                    ->label('Selesai Kontrak')
-                    ->reactive()
-                    ->afterStateUpdated($calculate)
-                    ->afterOrEqual('tanggal_kontrak'),
-                Forms\Components\DatePicker::make('tanggal_kontrak')
-                    ->label('Tanggal Kontrak')
-                    ->required()
-                    ->reactive()
-                    ->afterStateUpdated($calculate)
-                    ->beforeOrEqual('selesai_kontrak'),
-                Forms\Components\Select::make('status_kontrak')
-                    ->label('Status Kontrak')
-                    ->options([
-                        'Selesai' => 'Selesai',
-                        'In Progress' => 'In Progress',
-                    ]),
-                Forms\Components\TextInput::make('durasi_kontrak')
-                    ->disabled()
-                    ->label('Durasi Kontrak')
-                    ->suffix(' hari'),
-            ]);
+            ->schema(static::getFormSchema());
+    }
+
+    public static function getTableColumns(): array
+    {
+        return [
+            Tables\Columns\TextColumn::make('id')
+                ->sortable()
+                ->label('Contract ID'),
+            Tables\Columns\TextColumn::make('pemberi_tugas')
+                ->searchable()
+                ->label('Pemberi Tugas'),
+            Tables\Columns\TextColumn::make('industries.type')
+                ->searchable()
+                ->sortable()
+                ->label('Jenis Industri'),
+            Tables\Columns\TextColumn::make('contract_types.type')
+                ->searchable()
+                ->sortable()
+                ->label('Tujuan Kontrak'),
+            Tables\Columns\TextColumn::make('lokasi_proyek')
+                ->searchable()
+                ->sortable()
+                ->label('Lokasi Proyek'),
+            Tables\Columns\TextColumn::make('status_kontrak')
+                ->badge()
+                ->color(fn (string $state): string => match ($state) {
+                    'Selesai' => 'success',
+                    'In Progress' => 'warning',
+                    'Batal' => 'danger',
+                })
+                ->sortable()
+                ->label('Status Kontrak')
+                ->default('In Progress'),
+            Tables\Columns\TextColumn::make('tanggal_kontrak')
+                ->sortable()
+                ->label('Tanggal Kontrak'),
+            Tables\Columns\TextColumn::make('selesai_kontrak')
+                ->sortable()
+                ->label('Selesai Kontrak'),
+            Tables\Columns\TextColumn::make('durasi_kontrak')
+                ->sortable()
+                ->suffix(' hari')
+                ->label('Durasi Kontrak'),
+        ];
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('id')
-                    ->sortable()
-                    ->label('Contract ID'),
-                Tables\Columns\TextColumn::make('pemberi_tugas')
-                    ->searchable()
-                    ->label('Pemberi Tugas'),
-                Tables\Columns\TextColumn::make('jenis_industri')
-                    ->searchable()
-                    ->sortable()
-                    ->label('Jenis Industri'),
-                Tables\Columns\TextColumn::make('tujuan_kontrak')
-                    ->searchable()
-                    ->sortable()
-                    ->label('Tujuan Kontrak'),
-                Tables\Columns\TextColumn::make('lokasi_proyek')
-                    ->searchable()
-                    ->sortable()
-                    ->label('Lokasi Proyek'),
-                Tables\Columns\TextColumn::make('status_kontrak')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'Selesai' => 'success',
-                        'In Progress' => 'warning',
-                    })
-                    ->sortable()
-                    ->label('Status Kontrak')
-                    ->default('In Progress'),
-                Tables\Columns\TextColumn::make('tanggal_kontrak')
-                    ->sortable()
-                    ->label('Tanggal Kontrak'),
-                Tables\Columns\TextColumn::make('selesai_kontrak')
-                    ->sortable()
-                    ->label('Selesai Kontrak'),
-                Tables\Columns\TextColumn::make('durasi_kontrak')
-                    ->sortable()
-                    ->suffix(' hari')
-                    ->label('Durasi Kontrak'),
-            ])
+            ->columns(static::getTableColumns())
             ->filters([
-                //
+                SelectFilter::make('status_kontrak')
+                    ->multiple()
+                    ->options([
+                        'Batal' => 'Batal',
+                        'In Progress' => 'In Progress',
+                        'Selesai' => 'Selesai'
+                    ])
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -136,6 +244,53 @@ class ContractResource extends Resource
             ])
             ->emptyStateActions([
                 Tables\Actions\CreateAction::make(),
+            ]);
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                SectionInfoList::make('Contract Information')
+                    ->schema([
+                        TextEntry::make('id')
+                            ->label('Contract ID'),
+                        TextEntry::make('pemberi_tugas')
+                            ->label('Pemberi Tugas'),
+                        TextEntry::make('industries.type')
+                            ->label('Jenis Industri'),
+                        TextEntry::make('contract_types.type')
+                            ->label('Tujuan Kontrak'),
+                        TextEntry::make('lokasi_proyek')
+                            ->label('Lokasi Proyek'),
+                    ])
+                    ->columns(2),
+                SectionInfoList::make('Survey Information')
+                    ->schema([
+                        // TextEntry::make('surveys_id')
+                        //     ->label('ID Survey'),
+                        TextEntry::make('surveyors.name')
+                            ->label('Surveyor'),
+                        TextEntry::make('surveys.pemilik_aset')
+                            ->label('Pemilik Aset'),
+                        TextEntry::make('surveys.tanggal_survey')
+                            ->label('Tanggal Survey'),
+                        TextEntry::make('surveys.assets.type')
+                            ->label('Jenis Aset'),
+                        TextEntry::make('surveys.keterangan_aset')
+                            ->label('Keterangan Aset'),
+                        ImageEntry::make('surveys.gambar_aset')
+                            ->label('Gambar Aset'),
+                        TextEntry::make('surveys.harga_aset')
+                            ->label('Harga Aset')
+                            ->prefix('Rp. ')
+                            ->numeric(
+                                decimalPlaces: 0,
+                                decimalSeparator: '.',
+                                thousandsSeparator: '.',
+                            )
+                    ])
+                    ->columns(2),
             ]);
     }
 
@@ -152,6 +307,48 @@ class ContractResource extends Resource
             'index' => Pages\ListContracts::route('/'),
             'create' => Pages\CreateContract::route('/create'),
             'edit' => Pages\EditContract::route('/{record}/edit'),
+            'view' => Pages\ViewContract::route('/{record}'),
         ];
     }
+
+    public static function canUpdate(Contract $record): bool
+    {
+        return auth()->user()->role !== 'admin';
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->role !== 'admin';
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->role == 'admin';
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['pemberi_tugas', 'industries.type', 'contract_types.type', 'lokasi_proyek', 'tanggal_kontrak', 'selesai_kontrak'];
+    }
+
+    // public static function getGlobalSearchResultDetails(Model $record): array
+    // {
+    //     return [
+    //         'Industry Type' => $record->industries->type,
+    //         'Contract Type' => $record->contract_types->type,
+    //         'Lokasi Proyek' => $record->lokasi_proyek,
+    //     ];
+    // }
+
+    // public function create()
+    // {
+    //     $survey = Survey::orderBy('created_at', 'desc')->first();
+    //     return view('contracts.create', ['surveyId' => $survey->id]);
+    // }
+
+    // public function show($id)
+    // {
+    //     $contract = Contract::findOrFail($id);
+    //     return view('view.contract', compact('contract'));
+    // }
 }

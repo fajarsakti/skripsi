@@ -13,34 +13,52 @@ class Contract extends Model
     use HasFactory;
 
     protected $fillable = [
+        'surveyors_id',
+        'surveys_id',
         'pemberi_tugas',
-        'jenis_industri',
-        'tujuan_kontrak',
+        'industries_id',
+        'contract_types_id',
         'lokasi_proyek',
-        'tanggal_survey',
+        'tanggal_kontrak',
         'selesai_kontrak',
         'status_kontrak',
-        'is_available',
         'durasi_kontrak',
+        'is_available',
     ];
 
-    public function surveys(): BelongsTo
+    public function surveys(): HasMany
     {
-        return $this->belongsTo(Survey::class);
+        return $this->hasMany(Survey::class);
     }
 
-    public function surveyor(): BelongsTo
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(Assignment::class);
+    }
+
+    public function surveyors(): BelongsTo
     {
         return $this->belongsTo(Surveyor::class);
     }
 
-    public function type(): HasMany
+    public function contract_types(): BelongsTo
     {
-        return $this->hasMany(ContractType::class);
+        return $this->belongsTo(ContractType::class);
     }
 
-    public function industry(): HasMany
+    public function industries(): BelongsTo
     {
-        return $this->hasMany(Industry::class);
+        return $this->belongsTo(Industry::class);
+    }
+
+    public function setStatusKontrakAttribute($value)
+    {
+        $this->attributes['status_kontrak'] = $value;
+
+        if ($value === 'In Progress') {
+            $this->attributes['is_available'] = 1;
+        } elseif ($value === 'Selesai' || $value === 'Batal') {
+            $this->attributes['is_available'] = 0;
+        }
     }
 }

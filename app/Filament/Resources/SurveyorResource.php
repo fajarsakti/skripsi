@@ -19,7 +19,7 @@ class SurveyorResource extends Resource
 
     protected static ?string $navigationGroup = 'Staff Management';
 
-    protected static ?string $navigationIcon = 'heroicon-o-user';
+    protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
     public static function form(Form $form): Form
     {
@@ -28,12 +28,6 @@ class SurveyorResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->label('Nama'),
-                Forms\Components\TextInput::make('email')
-                    ->required()
-                    ->label('Email'),
-                Forms\Components\TextInput::make('phone')
-                    ->required()
-                    ->label('Nomor Telepon'),
             ]);
     }
 
@@ -42,11 +36,9 @@ class SurveyorResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Surveyor'),
-                Tables\Columns\TextColumn::make('email')
-                    ->label('Email'),
-                Tables\Columns\TextColumn::make('phone')
-                    ->label('Nomor Telepon'),
+                    ->label('Surveyor')
+                    ->searchable()
+                    ->sortable(),
             ])
             ->filters([
                 //
@@ -78,5 +70,10 @@ class SurveyorResource extends Resource
             'create' => Pages\CreateSurveyor::route('/create'),
             'edit' => Pages\EditSurveyor::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->role == 'admin';
     }
 }

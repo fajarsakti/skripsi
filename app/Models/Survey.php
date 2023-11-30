@@ -6,18 +6,21 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Event;
+use App\Events\SurveyCompleted;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Survey extends Model
 {
     use HasFactory;
 
     protected $fillable = [
+        'contract_id',
         'surveyors_id',
-        'contracts_id',
-        'nama_surveyor',
         'pemilik_aset',
         'tanggal_survey',
-        'jenis_aset',
+        'assets_id',
         'keterangan_aset',
         'gambar_aset',
         'harga_aset',
@@ -33,8 +36,8 @@ class Survey extends Model
         return $this->belongsTo(Surveyor::class);
     }
 
-    public function asset(): HasMany
+    public function assets(): BelongsTo
     {
-        return $this->hasMany(Asset::class);
+        return $this->belongsTo(Asset::class);
     }
 }

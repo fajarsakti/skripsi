@@ -9,4 +9,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateSurveyor extends CreateRecord
 {
     protected static string $resource = SurveyorResource::class;
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }
