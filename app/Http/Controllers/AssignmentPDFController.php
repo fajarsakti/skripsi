@@ -11,13 +11,15 @@ class AssignmentPDFController extends Controller
 {
     public function assignmentPDF($id)
     {
-        $assignment = Assignment::with(['contracts', 'contracts.surveyors', 'contracts.industries', 'contracts.contract_types'])
+        $assignment = Assignment::with(['contracts', 'contracts.surveyors', 'contracts.industries', 'contracts.contract_types', 'contracts.assets'])
             ->where('id', $id)
             ->findOrFail($id);
 
         $data = [
             'date' => $assignment->tanggal_penugasan,
-            'assignment' => $assignment
+            'assignment' => $assignment,
+            'location' => $assignment->contracts->lokasi_proyek,
+            'asset' => $assignment->contracts->assets->type,
         ];
 
         $pdf = PDF::loadView('assignmentPDF', $data);

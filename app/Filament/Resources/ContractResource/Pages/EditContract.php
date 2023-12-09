@@ -25,35 +25,40 @@ class EditContract extends EditRecord
     {
         $contract = $this->record;
 
-        if ($contract->status_kontrak == 'Batal') {
+        // if ($contract->status_kontrak == 'Batal') {
+        //     $pemberiTugas = $contract->pemberi_tugas;
+        //     $contractId = $contract->id;
+
+        //     $recipients = User::where('role', 'admin')->get();
+
+        //     foreach ($recipients as $recipient) {
+        //         $recipient->notify(
+        //             Notification::make()
+        //                 ->title('Kontrak telah dibatalkan')
+        //                 ->danger()
+        //                 ->send()
+        //                 ->body("Kontrak dengan ID $contractId dari $pemberiTugas telah dibatalkan")  // change the body message here
+        //                 ->actions([
+        //                     Action::make('View')
+        //                         ->button()
+        //                         ->url(ContractResource::getUrl('view', ['record' => $contract]))
+        //                 ])
+        //                 ->toDatabase($recipients)
+        //         );
+        //     }
+        // } 
+        if ($contract->status_kontrak == 'Selesai') {
             $pemberiTugas = $contract->pemberi_tugas;
             $contractId = $contract->id;
 
-            $recipients = User::where('role', 'admin')->get();
-
-            foreach ($recipients as $recipient) {
-                $recipient->notify(
-                    Notification::make()
-                        ->title('Kontrak telah dibatalkan')  // change the title here
-                        ->body("Kontrak dengan ID $contractId dari $pemberiTugas telah dibatalkan")  // change the body message here
-                        ->actions([
-                            Action::make('View')
-                                ->button()
-                                ->url(ContractResource::getUrl('view', ['record' => $contract]))
-                        ])
-                        ->toDatabase($recipients)
-                );
-            }
-        } elseif ($contract->status_kontrak == 'Selesai') {
-            $pemberiTugas = $contract->pemberi_tugas;
-            $contractId = $contract->id;
-
-            $recipients = User::where('role', 'admin')->get();
+            $recipients = User::whereIn('role', ['admin', 'debitur'])->get();
 
             foreach ($recipients as $recipient) {
                 $recipient->notify(
                     Notification::make()
                         ->title('Kontrak telah selesai')
+                        ->success()
+                        ->send()
                         ->body("Kontrak dengan ID $contractId dari $pemberiTugas sudah selesai")
                         ->actions([
                             Action::make('View')

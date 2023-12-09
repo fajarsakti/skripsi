@@ -11,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class AssetResource extends Resource
@@ -19,7 +20,7 @@ class AssetResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-circle-stack';
 
-    protected static ?string $navigationGroup = 'Project Management';
+    protected static ?string $navigationGroup = 'Object Management';
 
     public static function getGloballySearchableAttributes(): array
     {
@@ -49,6 +50,7 @@ class AssetResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -78,6 +80,16 @@ class AssetResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return auth()->user()->role == 'surveyor';
+        return auth()->user()->role == 'admin';
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->role == 'admin';
+    }
+
+    public static function canUpdate(Model $record): bool
+    {
+        return auth()->user()->role == 'admin';
     }
 }

@@ -24,6 +24,18 @@
         <p>Surveyor yang ditugaskan : {{ $assignment->surveyors->name }}</p>
         <p>Debitur : {{ $assignment->contracts->pemberi_tugas }}</p>
     </div>
+
+    <div>
+        <h3>Deskripsi Tugas</h3>
+        <p>Anda ditugaskan untuk melaksanakan penilaian terhadap aset {{ $assignment->contracts->assets->type }} yang
+            berlokasi di {{ $assignment->contracts->lokasi_proyek }}. Tugas ini dimulai pada tanggal
+            {{ $assignment->tanggal_penugasan }}.
+        </p>
+    </div>
+        <p>Harap menggunakan sumber data yang valid dan terpercaya dalam melakukan penilaian. Pastikan laporan hasil
+            penilaian disusun dengan rapi dan jelas</p>
+        <p>Demikian surat penugasan ini kami sampaikan. Mohon untuk segera mengkonfirmasi penerimaan surat ini dan
+            memastikan pemahaman Anda mengenai tugas yang diberikan. Terima kasih atas perhatian dan kerjasamanya.</p>
 </body>
 
 </html>

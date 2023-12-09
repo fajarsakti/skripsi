@@ -16,8 +16,8 @@ class Asset extends Model
         'type',
     ];
 
-    // public function surveys(): BelongsTo
-    // {
-    //     return $this->belongsTo(Survey::class);
-    // }
+    public function contracts(): HasMany
+    {
+        return $this->hasMany(Contract::class);
+    }
 }

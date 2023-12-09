@@ -6,7 +6,7 @@ use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Illuminate\Support\Facades\DB;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
-class ContractOverview extends BaseWidget
+class OrderOverview extends BaseWidget
 {
     protected function getStats(): array
     {
@@ -16,9 +16,12 @@ class ContractOverview extends BaseWidget
         $countBatal = DB::table('contracts')->where('status_kontrak', 'Batal')->count();
 
         return [
-            Stat::make('Successful Contracts', $countLanjut),
-            Stat::make('Ongoing Contracts', $countPending),
-            Stat::make('Cancelled Contracts', $countBatal),
+            Stat::make('Successful Orders', $countLanjut)
+                ->color('success'),
+            Stat::make('Ongoing Orders', $countPending)
+                ->color('warning'),
+            Stat::make('Cancelled Orders', $countBatal)
+                ->color('danger'),
         ];
     }
 

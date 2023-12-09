@@ -19,11 +19,13 @@ class Contract extends Model
         'industries_id',
         'contract_types_id',
         'lokasi_proyek',
+        'assets_id',
         'tanggal_kontrak',
         'selesai_kontrak',
         'status_kontrak',
         'durasi_kontrak',
         'is_available',
+
     ];
 
     public function surveys(): HasMany
@@ -49,6 +51,11 @@ class Contract extends Model
     public function industries(): BelongsTo
     {
         return $this->belongsTo(Industry::class);
+    }
+
+    public function assets(): BelongsTo
+    {
+        return $this->belongsTo(Asset::class);
     }
 
     public function setStatusKontrakAttribute($value)

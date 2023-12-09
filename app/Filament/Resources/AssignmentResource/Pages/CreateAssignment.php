@@ -35,6 +35,8 @@ class CreateAssignment extends CreateRecord
             $recipient->notify(
                 Notification::make()
                     ->title('Surat tugas survey')
+                    ->warning()
+                    ->send()
                     ->body("Terdapat surat tugas dari $debitur untuk surveyor $surveyor, silahkan dilanjutkan ke proses survey")
                     ->actions([
                         Action::make('View')

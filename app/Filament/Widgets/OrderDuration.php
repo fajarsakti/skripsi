@@ -5,9 +5,9 @@ namespace App\Filament\Widgets;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\DB;
 
-class ContractDuration extends ChartWidget
+class OrderDuration extends ChartWidget
 {
-    protected static ?string $heading = 'Contract Completion Time Average';
+    protected static ?string $heading = 'Order Completion Time Average';
 
     public static function getSort(): int
     {
@@ -32,7 +32,7 @@ class ContractDuration extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Rata-rata Waktu Penyelesaian Kontrak (dalam hari)',
+                    'label' => 'Rata-rata Waktu Penyelesaian Order (dalam hari)',
                     'data' => $data->pluck('average_duration')->toArray(),
                     'backgroundColor' => 'rgba(75, 192, 192, 0.2)',
                     'borderColor' => 'rgba(75, 192, 192, 1)',

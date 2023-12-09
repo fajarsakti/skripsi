@@ -1,10 +1,13 @@
 <?php
 
+use App\Livewire\MyOrder;
 use App\Http\Controllers\AssignmentPDFController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PDFController;
 use App\Livewire\Home;
 use Filament\Infolists\Infolist;
+use App\Livewire\ContractOrder;
+use Filament\Pages\Auth\Login;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,10 +24,16 @@ use Filament\Infolists\Infolist;
 //     return view('welcome');
 // });
 
-Route::get('/', Home::class);
+Route::get('/', Home::class)->name('home');
 
 Route::get('/contractpdf/{id}', [PDFController::class, 'contractpdf'])->name('contract.pdf');
 
 Route::get('/assignmentpdf/{id}', [AssignmentPDFController::class, 'assignmentpdf'])->name('assignment.pdf');
 
-// Route::get('/contract-order', ContractOrder::class);
+Route::get('/contract-order', ContractOrder::class)->name('contract-order');
+
+Route::get('/my-order', MyOrder::class)->name('my-order');
+
+// Route::get('/login', Login::class)->name('login');
+
+// Route::post('/submit-form', 'FormController@submit')->middleware('auth');

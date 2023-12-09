@@ -26,27 +26,27 @@ class CreateContract extends CreateRecord
         return $data;
     }
 
-    public function afterCreate(): void
-    {
-        $contract = $this->record;
+    // public function afterCreate(): void
+    // {
+    //     $contract = $this->record;
 
-        $pemberiTugas = $contract->pemberi_tugas;
+    //     $pemberiTugas = $contract->pemberi_tugas;
 
-        $recipients = User::whereIn('role', ['admin', 'surveyor'])->get();
+    //     $recipients = User::whereIn('role', ['admin', 'surveyor'])->get();
 
-        foreach ($recipients as $recipient) {
-            $recipient->notify(
-                Notification::make()
-                    ->title('Kontrak baru telah ditambahkan')
-                    ->body("Terdapat kontrak baru dari $pemberiTugas yang harus dilakukan survey")
-                    ->actions([
-                        Action::make('View')
-                            ->button()
-                            ->url(ContractResource::getUrl('view', ['record' => $contract]))
-                            ->openUrlInNewTab()
-                    ])
-                    ->toDatabase($recipients)
-            );
-        }
-    }
+    //     foreach ($recipients as $recipient) {
+    //         $recipient->notify(
+    //             Notification::make()
+    //                 ->title('Kontrak baru telah ditambahkan')
+    //                 ->body("Terdapat kontrak baru dari $pemberiTugas yang harus dilakukan survey")
+    //                 ->actions([
+    //                     Action::make('View')
+    //                         ->button()
+    //                         ->url(ContractResource::getUrl('view', ['record' => $contract]))
+    //                         ->openUrlInNewTab()
+    //                 ])
+    //                 ->toDatabase($recipients)
+    //         );
+    //     }
+    // }
 }

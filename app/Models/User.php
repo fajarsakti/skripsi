@@ -11,8 +11,10 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Storage;
 use Filament\Models\Contracts\HasAvatar;
+use Filament\Panel;
 
 class User extends Authenticatable implements HasAvatar
+// , FilamentUser
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -49,8 +51,28 @@ class User extends Authenticatable implements HasAvatar
         'password' => 'hashed',
     ];
 
+    // public function canAccessPanel(Panel $panel): bool
+    // {
+    //     return $this->isAdmin() || $this->isSurveyor();
+    // }
+
     public function getFilamentAvatarUrl(): ?string
     {
         return $this->avatar_url ? Storage::url($this->avatar_url) : null;
+    }
+
+    public function isAdmin()
+    {
+        return $this->role === 'Admin';
+    }
+
+    public function isSurveyor()
+    {
+        return $this->role === 'Surveyor';
+    }
+
+    public function isDebitur()
+    {
+        return $this->role === 'Debitur';
     }
 }

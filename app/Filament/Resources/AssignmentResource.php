@@ -22,6 +22,7 @@ use Filament\Infolists\Infolist;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Infolists;
 use Filament\Infolists\Components\Section as SectionInfoList;
+use Illuminate\Database\Eloquent\Model;
 
 class AssignmentResource extends Resource
 {
@@ -42,6 +43,15 @@ class AssignmentResource extends Resource
         return $contractOptions;
     }
 
+    public static function getSurveyLocation()
+    {
+        $contracts = Contract::where('status_kontrak', 'In Progress')->get();
+
+        $surveyLocation = $contracts->pluck('lokasi_proyek', 'id')->toArray();
+
+        return $surveyLocation;
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -54,6 +64,10 @@ class AssignmentResource extends Resource
                     ->label('Debitur')
                     ->options(static::getInProgressContractsOptions())
                     ->required(),
+                Forms\Components\Select::make('contracts_id')
+                    ->label('Lokasi Survey')
+                    ->required()
+                    ->options(static::getSurveyLocation()),
                 Forms\Components\TextInput::make('no_penugasan')
                     ->label('Nomor Penugasan')
                     ->required(),
@@ -76,11 +90,13 @@ class AssignmentResource extends Resource
                             ->label('Surveyor'),
                         Infolists\Components\TextEntry::make('contracts.pemberi_tugas')
                             ->label('Debitur'),
+                        Infolists\Components\TextEntry::make('contracts.assets.type')
+                            ->label('Jenis Aset'),
                         Infolists\Components\TextEntry::make('no_penugasan')
                             ->label('Nomor Penugasan')
                             ->prefix('KJPP'),
                         Infolists\Components\TextEntry::make('tanggal_penugasan')
-                            ->label('Tanggal Penugasan')
+                            ->label('Tanggal Penugasan'),
                     ])
             ]);
     }
@@ -98,6 +114,9 @@ class AssignmentResource extends Resource
                 Tables\Columns\TextColumn::make('contracts.pemberi_tugas')
                     ->searchable()
                     ->label('Debitur'),
+                Tables\Columns\TextColumn::make('contracts.assets.type')
+                    ->searchable()
+                    ->label('Jenis Aset'),
                 Tables\Columns\TextColumn::make('no_penugasan')
                     ->searchable()
                     ->label('Nomor Penugasan')
@@ -111,7 +130,8 @@ class AssignmentResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\ViewAction::make()
+                Tables\Actions\ViewAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -143,5 +163,25 @@ class AssignmentResource extends Resource
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->role == 'surveyor' || auth()->user()->role == 'admin';
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return auth()->user()->role == 'admin';
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->role == 'admin';
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return auth()->user()->role == 'admin';
     }
 }

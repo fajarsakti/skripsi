@@ -22,6 +22,7 @@ use Filament\Forms\Components\Section;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
 use App\Filament\Resources\SurveyResource\Pages\ViewSurvey;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 
 
@@ -48,18 +49,32 @@ class SurveyResource extends Resource
         return $contractOptions;
     }
 
+    public static function getContractAsset()
+    {
+        $assets_id = Contract::pluck('assets_id')->toArray();
+        $assets = Asset::whereIn('id', $assets_id)->get();
+
+        $getAsset = $assets->pluck('type', 'id')->toArray();
+
+        return $getAsset;
+    }
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Section::make('Contract Information')
+                Section::make('Order Information')
                     ->schema([
                         Forms\Components\Select::make('contract_id')
                             ->options(static::getInProgressContractsOptions()) // Use the custom method here
                             ->required()
                             ->label('Pemberi Tugas'),
+                        Forms\Components\Select::make('contracts.assets_id')
+                            ->options(static::getContractAsset())
+                            ->required()
+                            ->label('Jenis Aset'),
                     ])
-                    ->columnSpan('full'),
+                    ->column(2),
                 Section::make('Survey Fullfilment ')
                     ->schema([
                         Forms\Components\Select::make('surveyors_id')
@@ -72,10 +87,6 @@ class SurveyResource extends Resource
                         Forms\Components\DatePicker::make('tanggal_survey')
                             ->label('Tanggal Survey')
                             ->required(),
-                        Forms\Components\Select::make('assets_id')
-                            ->options(Asset::all()->pluck('type', 'id')->toArray())
-                            ->required()
-                            ->label('Jenis Aset'),
                         Forms\Components\Textarea::make('keterangan_aset')
                             ->label('Keterangan Aset')
                             ->required(),
@@ -86,8 +97,7 @@ class SurveyResource extends Resource
                             ->required(),
                         Forms\Components\FileUpload::make('gambar_aset')
                             ->label('Gambar Aset')
-                            ->image()
-                            ->columnSpanFull(),
+                            ->image(),
                     ])
                     ->columns(2)
             ]);
@@ -136,7 +146,8 @@ class SurveyResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\ViewAction::make()
+                Tables\Actions\ViewAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -160,7 +171,7 @@ class SurveyResource extends Resource
                     ->label('Pemilik Aset'),
                 Infolists\Components\TextEntry::make('tanggal_survey')
                     ->label('Tanggal Survey'),
-                Infolists\Components\TextEntry::make('assets.type')
+                Infolists\Components\TextEntry::make('contracts.assets.type')
                     ->label('Jenis Aset'),
                 Infolists\Components\TextEntry::make('keterangan_aset')
                     ->label('Keterangan Aset'),
@@ -204,7 +215,7 @@ class SurveyResource extends Resource
         return auth()->user()->role == 'surveyor';
     }
 
-    public static function canUpdate(Survey $record): bool
+    public static function canEdit(Model $record): bool
     {
         return auth()->user()->role == 'surveyor';
     }

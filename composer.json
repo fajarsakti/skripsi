@@ -12,6 +12,7 @@
         "barryvdh/laravel-dompdf": "^2.0",
         "filament/filament": "3.0.9",
         "filament/notifications": "3.0.9",
+        "filament/tables": "v3.0.9",
         "guzzlehttp/guzzle": "^7.2",
         "jeffgreco13/filament-breezy": "^2.2",
         "laravel/framework": "^10.10",

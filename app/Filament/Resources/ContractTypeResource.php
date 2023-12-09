@@ -19,7 +19,9 @@ class ContractTypeResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
 
-    protected static ?string $navigationGroup = 'Contract Management';
+    protected static ?string $navigationGroup = 'Object Management';
+
+    protected static ?string $modelLabel = 'Order Type';
 
     public static function form(Form $form): Form
     {
@@ -27,7 +29,7 @@ class ContractTypeResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('type')
                     ->required()
-                    ->label('Tujuan Kontrak'),
+                    ->label('Tujuan Order'),
             ]);
     }
 
@@ -36,7 +38,7 @@ class ContractTypeResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('type')
-                    ->label('Tujuan Kontrak')
+                    ->label('Tujuan Order')
                     ->searchable(),
             ])
             ->filters([
@@ -44,6 +46,7 @@ class ContractTypeResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

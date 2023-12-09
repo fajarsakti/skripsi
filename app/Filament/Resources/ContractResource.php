@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ContractResource\Pages;
 use App\Filament\Resources\ContractResource\RelationManagers;
+use App\Models\Asset;
 use App\Models\Contract;
 use App\Models\ContractType;
 use App\Models\Industry;
@@ -27,18 +28,23 @@ use Illuminate\Support\Facades\DB;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\Section as SectionInfoList;
 use Filament\Tables\Filters\SelectFilter;
+use App\Models\User;
+use Filament\Forms\Get;
+use Illuminate\Database\Eloquent\Model;
 
 class ContractResource extends Resource
 {
     protected static ?string $model = Contract::class;
 
-    protected static ?string $navigationGroup = 'Contract Management';
+    protected static ?string $navigationGroup = 'Project Management';
 
-    protected static ?string $slug = 'contracts';
+    protected static ?string $slug = 'orders';
 
     protected static ?string $recordTitleAttribute = 'pemberi_tugas';
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
+
+    protected static ?string $modelLabel = 'Order';
 
     public static function getFormSchema(): array
     {
@@ -101,8 +107,9 @@ class ContractResource extends Resource
                         ->label('Surveyor')
                         ->options(Surveyor::all()->pluck('name', 'id')->toArray())
                 ])
-                ->columns(2),
-            Section::make('Contract Information')
+                ->columns(2)
+                ->visible(fn (Get $get): bool => auth()->user()->role === 'admin'),
+            Section::make('Order Information')
                 ->schema([
                     Forms\Components\TextInput::make('pemberi_tugas')
                         ->label('Pemberi Tugas')
@@ -114,24 +121,29 @@ class ContractResource extends Resource
                     Forms\Components\Select::make('contract_types_id')
                         ->options(ContractType::all()->pluck('type', 'id')->toArray())
                         ->required()
-                        ->label('Tujuan Kontrak'),
+                        ->label('Tujuan Order'),
                     Forms\Components\TextInput::make('lokasi_proyek')
                         ->label('Lokasi Proyek')
                         ->required(),
+                    Forms\Components\Select::make('assets_id')
+                        ->options(Asset::all()->pluck('type', 'id')->toArray())
+                        ->label('Jenis Aset')
+                        ->required(),
                     Forms\Components\DatePicker::make('tanggal_kontrak')
-                        ->label('Tanggal Kontrak')
+                        ->label('Tanggal Order')
                         ->required()
                         ->reactive()
                         ->afterStateUpdated($calculate)
                         ->rules('bail', 'before_or_equal_if_filled:selesai_kontrak'),
                     Forms\Components\DatePicker::make('selesai_kontrak')
-                        ->label('Selesai Kontrak')
+                        ->label('Selesai Order')
                         ->reactive()
                         ->afterStateUpdated($calculate)
                         ->afterOrEqual('tanggal_kontrak')
-                        ->rules('bail', 'before_or_equal_if_filled:tanggal_kontrak'),
+                        ->rules('bail', 'before_or_equal_if_filled:tanggal_kontrak')
+                        ->visible(fn (Get $get): bool => auth()->user()->role === 'admin'),
                     Forms\Components\Select::make('status_kontrak')
-                        ->label('Status Kontrak')
+                        ->label('Status Order')
                         ->reactive()
                         ->options([
                             'Selesai' => 'Selesai',
@@ -160,11 +172,13 @@ class ContractResource extends Resource
                             } elseif ($statusKontrak === 'Selesai' || $statusKontrak === 'Batal') {
                                 $set('is_available', 0);
                             }
-                        }),
+                        })
+                        ->visible(fn (Get $get): bool => auth()->user()->role === 'admin'),
                     Forms\Components\TextInput::make('durasi_kontrak')
                         ->disabled()
-                        ->label('Durasi Kontrak')
-                        ->suffix(' hari'),
+                        ->label('Durasi Order')
+                        ->suffix(' hari')
+                        ->visible(fn (Get $get): bool => auth()->user()->role === 'admin'),
                 ])
                 ->columns(2)
         ];
@@ -181,7 +195,7 @@ class ContractResource extends Resource
         return [
             Tables\Columns\TextColumn::make('id')
                 ->sortable()
-                ->label('Contract ID'),
+                ->label('Order ID'),
             Tables\Columns\TextColumn::make('pemberi_tugas')
                 ->searchable()
                 ->label('Pemberi Tugas'),
@@ -192,11 +206,14 @@ class ContractResource extends Resource
             Tables\Columns\TextColumn::make('contract_types.type')
                 ->searchable()
                 ->sortable()
-                ->label('Tujuan Kontrak'),
+                ->label('Tujuan Order'),
             Tables\Columns\TextColumn::make('lokasi_proyek')
                 ->searchable()
                 ->sortable()
                 ->label('Lokasi Proyek'),
+            Tables\Columns\TextColumn::make('assets.type')
+                ->searchable()
+                ->label('Jenis Aset'),
             Tables\Columns\TextColumn::make('status_kontrak')
                 ->badge()
                 ->color(fn (string $state): string => match ($state) {
@@ -205,18 +222,18 @@ class ContractResource extends Resource
                     'Batal' => 'danger',
                 })
                 ->sortable()
-                ->label('Status Kontrak')
+                ->label('Status Order')
                 ->default('In Progress'),
             Tables\Columns\TextColumn::make('tanggal_kontrak')
                 ->sortable()
-                ->label('Tanggal Kontrak'),
+                ->label('Tanggal Order'),
             Tables\Columns\TextColumn::make('selesai_kontrak')
                 ->sortable()
-                ->label('Selesai Kontrak'),
+                ->label('Selesai Order'),
             Tables\Columns\TextColumn::make('durasi_kontrak')
                 ->sortable()
                 ->suffix(' hari')
-                ->label('Durasi Kontrak'),
+                ->label('Durasi Order'),
         ];
     }
 
@@ -227,6 +244,7 @@ class ContractResource extends Resource
             ->filters([
                 SelectFilter::make('status_kontrak')
                     ->multiple()
+                    ->label('Status Order')
                     ->options([
                         'Batal' => 'Batal',
                         'In Progress' => 'In Progress',
@@ -236,6 +254,7 @@ class ContractResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\ViewAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -263,6 +282,8 @@ class ContractResource extends Resource
                             ->label('Tujuan Kontrak'),
                         TextEntry::make('lokasi_proyek')
                             ->label('Lokasi Proyek'),
+                        TextEntry::make('assets.type')
+                            ->label('Jenis Aset'),
                     ])
                     ->columns(2),
                 SectionInfoList::make('Survey Information')
@@ -275,7 +296,7 @@ class ContractResource extends Resource
                             ->label('Pemilik Aset'),
                         TextEntry::make('surveys.tanggal_survey')
                             ->label('Tanggal Survey'),
-                        TextEntry::make('surveys.assets.type')
+                        TextEntry::make('contracts.assets.type')
                             ->label('Jenis Aset'),
                         TextEntry::make('surveys.keterangan_aset')
                             ->label('Keterangan Aset'),
@@ -311,20 +332,20 @@ class ContractResource extends Resource
         ];
     }
 
-    public static function canUpdate(Contract $record): bool
+    public static function canEdit(Model $record): bool
     {
-        return auth()->user()->role !== 'admin';
+        return auth()->user()->role == 'admin' || auth()->user()->role == 'debitur';
     }
 
     public static function canCreate(): bool
     {
-        return auth()->user()->role !== 'admin';
+        return auth()->user()->role == 'debitur';
     }
 
-    public static function canViewAny(): bool
-    {
-        return auth()->user()->role == 'admin';
-    }
+    // public static function canViewAny(): bool
+    // {
+    //     return auth()->user()->role == 'admin' || auth()->user()->role == 'surveyor';
+    // }
 
     public static function getGloballySearchableAttributes(): array
     {

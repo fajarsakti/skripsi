@@ -21,6 +21,10 @@ class ContractOrder extends Component implements HasForms
 {
     use InteractsWithForms;
 
+    public $surveys_id;
+
+    public $surveyors_id;
+
     public $pemberi_tugas;
 
     public $industries_id;
@@ -28,6 +32,16 @@ class ContractOrder extends Component implements HasForms
     public $contract_types_id;
 
     public $lokasi_proyek;
+
+    public $tanggal_kontrak;
+
+    public $assets_id;
+
+    public $selesai_kontrak;
+
+    public $status_kontrak;
+
+    public $durasi_kontrak;
 
     public function getFormSchema(): array
     {
@@ -41,21 +55,27 @@ class ContractOrder extends Component implements HasForms
 
     public function submit()
     {
-        $contract = $this->record;
+        $data = $this->form->getState();
 
-        $pemberiTugas = $contract->pemberi_tugas;
+        $contract_order = Contract::create($data);
 
-        $recipients = User::whereIn('role', ['admin', 'surveyor'])->get();
+        $this->form->model($contract_order)->saveRelationships();
+
+        $pemberiTugas = $contract_order->pemberi_tugas;
+
+        $recipients = User::where('role', 'admin')->get();
 
         foreach ($recipients as $recipient) {
             $recipient->notify(
                 Notification::make()
                     ->title('Kontrak baru telah ditambahkan')
+                    ->send()
+                    ->warning()
                     ->body("Terdapat kontrak baru dari $pemberiTugas yang harus dilakukan survey")
                     ->actions([
                         Action::make('View')
                             ->button()
-                            ->url(ContractResource::getUrl('view', ['record' => $contract]))
+                            ->url(ContractResource::getUrl('view', ['record' => $contract_order]))
                             ->openUrlInNewTab()
                     ])
                     ->toDatabase($recipients)

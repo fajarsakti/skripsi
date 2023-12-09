@@ -5,9 +5,9 @@ namespace App\Filament\Widgets;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\DB;
 
-class ContractTypePercentage extends ChartWidget
+class OrderTypePercentage extends ChartWidget
 {
-    protected static ?string $heading = 'Contract Type Percentages';
+    protected static ?string $heading = 'Order Type Percentages';
 
     protected static ?string $maxHeight = '250px';
 
@@ -53,7 +53,7 @@ class ContractTypePercentage extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Persentase Tujuan Kontrak',
+                    'label' => 'Persentase Tujuan Order',
                     'data' => $percentages,
                     'backgroundColor' => ['#FF5733', '#33FF57', '#5733FF', '#FFFF00'], // Warna untuk setiap tujuan kontrak
                 ],

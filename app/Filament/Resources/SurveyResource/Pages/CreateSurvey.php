@@ -50,6 +50,8 @@ class CreateSurvey extends CreateRecord
             $recipient->notify(
                 Notification::make()
                     ->title('Telah dilakukan survey')
+                    ->success()
+                    ->send()
                     ->body("Survey untuk kontrak $contractId dengan pemberi tugas $pemberiTugas sudah diselesaikan dengan ID survey $surveyId dan oleh surveyor $surveyorName pada $tanggalSurvey ")
                     ->actions([
                         Action::make('View')
