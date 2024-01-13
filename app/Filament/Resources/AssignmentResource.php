@@ -70,7 +70,8 @@ class AssignmentResource extends Resource
                     ->options(static::getSurveyLocation()),
                 Forms\Components\TextInput::make('no_penugasan')
                     ->label('Nomor Penugasan')
-                    ->required(),
+                    ->required()
+                    ->prefix('KJPP'),
                 Forms\Components\DatePicker::make('tanggal_penugasan')
                     ->label('Tanggal Penugasan')
                     ->default('created_at')

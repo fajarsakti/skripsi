@@ -6,19 +6,29 @@ use Livewire\Component;
 use Filament\Tables\Table;
 use App\Filament\Resources\ContractResource;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Actions\Action;
+// use Filament\Actions\Action;
+use Filament\Tables\Actions\Action;
 use Filament\Notifications\Notification;
 use App\Models\User;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Actions\Action as NotificationAction;
-use Filament\Tables\Actions\Contracts\HasTable;
+use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Concerns\InteractsWithTable;
+use App\Models\Contract;
 
 class MyOrder extends Component implements HasTable, HasForms
 {
-
     use InteractsWithForms, InteractsWithTable;
+
+    public function setStatusOrderBatal($id)
+    {
+        $order = Contract::find($id);
+        $order->status_kontrak = "Batal";
+        $order->save();
+
+        return redirect()->back();
+    }
 
     public function table(Table $table): Table
     {
@@ -68,7 +78,7 @@ class MyOrder extends Component implements HasTable, HasForms
                         $pemberiTugas = $record->pemberi_tugas;
                         $contractId = $record->id;
 
-                        $recipients = User::whereIn('role', ['admin', 'debitur'])->get();
+                        $recipients = User::where('role', 'admin')->get();
 
                         foreach ($recipients as $recipient) {
                             $recipient->notify(
@@ -86,10 +96,14 @@ class MyOrder extends Component implements HasTable, HasForms
                             );
                         }
                     })
+                    ->visible(function (Contract $record) {
+                        return $record->status_kontrak === 'In Progress';
+                    })
                     ->requiresConfirmation()
                     ->modalDescription('Batalkan order ini?')
                     ->modalSubmitActionLabel('Ya, batalkan order')
-            ]);
+            ])
+            ->emptyStateHeading('No orders yet');
     }
 
     public static function canView(): bool

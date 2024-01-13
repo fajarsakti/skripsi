@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\DB;
 
 class AssetPercentage extends ChartWidget
 {
+    // public ?string $filter = 'all';
+
     protected static ?string $heading = 'Asset Type Percentage';
 
     public static function getSort(): int
@@ -32,15 +34,23 @@ class AssetPercentage extends ChartWidget
 
     protected function getData(): array
     {
+        // $selectedSurveyors = $this->filter;
+
         // Menggunakan query untuk menghitung jumlah total aset
         $totalAset = DB::table('surveys')->count();
 
         // Menggunakan query untuk menghitung jumlah setiap jenis aset
-        $data = DB::table('surveys')
+        $query = DB::table('surveys')
             ->join('assets', 'assets.id', '=', 'surveys.assets_id')
+            // ->join('surveyors', 'surveyors.id', '=', 'surveys.surveyors_id')
             ->select('assets.type', DB::raw('COUNT(*) as count'))
-            ->groupBy('assets.type')
-            ->get();
+            ->groupBy('assets.type');
+
+        // if ($selectedSurveyors != 'all') {
+        //     $query = $query->where('surveyors.name', $selectedSurveyors);
+        // }
+
+        $data = $query->get();
 
         $labels = [];
         $percentages = [];
@@ -49,6 +59,8 @@ class AssetPercentage extends ChartWidget
             $percentage = ($item->count / $totalAset) * 100;
             $percentages[] = round($percentage, 2);
         }
+
+        // dd($data);
 
         return [
             'datasets' => [
@@ -61,6 +73,12 @@ class AssetPercentage extends ChartWidget
             'labels' => $labels,
         ];
     }
+
+    // protected function getFilters(): ?array
+    // {
+    //     $surveyors = DB::table('surveyors')->pluck('name')->toArray();
+    //     return array_merge(['all' => 'All'], $surveyors);
+    // }
 
     protected function getType(): string
     {

@@ -1,5 +1,7 @@
 import preset from './vendor/filament/support/tailwind.config.preset'
 
+const colors = require('tailwindcss/colors')
+
 export default {
     presets: [preset],
     content: [
@@ -7,12 +9,6 @@ export default {
         './resources/views/**/*.blade.php',
         './vendor/filament/**/*.blade.php',
     ],
-}
-
-const colors = require('tailwindcss/colors')
-
-module.exports = {
-    content: ['./resources/**/*.blade.php', './vendor/filament/**/*.blade.php'],
     theme: {
         extend: {
             colors: {
@@ -20,10 +16,9 @@ module.exports = {
                 secondary: colors.sky,
                 tertiary: colors.teal,
             },
+            backgroundImage: {
+                'image' : "url('build/assets/background.png')"
+            }
         },
     },
-    plugins: [
-        require('@tailwindcss/forms'),
-        require('@tailwindcss/typography'),
-    ],
 }

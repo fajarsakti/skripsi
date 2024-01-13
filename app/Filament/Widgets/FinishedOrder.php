@@ -9,6 +9,10 @@ use App\Filament\Resources\ContractResource;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Actions\Action;
+use App\Models\Contract;
+use App\Models\Surveyor;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Filters\SelectFilter;
 
 class FinishedOrder extends BaseWidget
 {
@@ -34,6 +38,9 @@ class FinishedOrder extends BaseWidget
                     ->label('Pemberi Tugas')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('surveyors.name')
+                    ->label('Surveyor')
+                    ->searchable(),
                 TextColumn::make('lokasi_proyek')
                     ->label('Lokasi Survey')
                     ->searchable()
@@ -46,6 +53,12 @@ class FinishedOrder extends BaseWidget
                     ->label('Jenis Industri')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('tanggal_kontrak')
+                    ->label('Tanggal Order')
+                    ->sortable(),
+                TextColumn::make('selesai_kontrak')
+                    ->label('Selesai Order')
+                    ->sortable(),
                 BadgeColumn::make('durasi_kontrak')
                     ->color(function ($state): string {
                         if ($state > 14) {
@@ -53,9 +66,17 @@ class FinishedOrder extends BaseWidget
                         }
                         return 'success';
                     })
-                    ->label('Waktu Penyelesaian Order')
+                    ->label('Durasi Order')
                     ->sortable()
                     ->suffix(' hari'),
+            ])
+            ->filters([
+                SelectFilter::make('surveyors_id')
+                    ->label('Surveyor')
+                    ->options([
+                        Surveyor::all()->pluck('name', 'id')->toArray()
+                    ])
+                    ->multiple(),
             ]);
     }
 

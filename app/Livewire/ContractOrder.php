@@ -81,6 +81,8 @@ class ContractOrder extends Component implements HasForms
                     ->toDatabase($recipients)
             );
         }
+
+        return redirect()->route('order-message');
     }
 
     public function render()

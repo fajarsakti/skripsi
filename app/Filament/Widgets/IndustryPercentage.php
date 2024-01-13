@@ -11,6 +11,8 @@ class IndustryPercentage extends ChartWidget
 
     protected static ?string $maxHeight = '250px';
 
+    // public ?string $filter = 'all';
+
     public static function getSort(): int
     {
         return static::$sort ?? 1;
@@ -32,15 +34,23 @@ class IndustryPercentage extends ChartWidget
 
     protected function getData(): array
     {
+        // $selectedSurveyors = $this->filter;
+
         // Menggunakan query untuk menghitung jumlah jenis industri
         $totalIndustry = DB::table('contracts')->count();
 
         // Menggunakan query untuk menghitung jumlah setiap jenis industri
-        $data = DB::table('contracts')
+        $query = DB::table('contracts')
             ->join('industries', 'industries.id', '=', 'contracts.industries_id')
+            // ->join('surveyors', 'surveyors.id', '=', 'contracts.surveyors_id')
             ->select('industries.type', DB::raw('COUNT(*) as count'))
-            ->groupBy('industries.type')
-            ->get();
+            ->groupBy('industries.type');
+
+        // if ($selectedSurveyors != 'all') {
+        //     $query = $query->where('surveyors.name', $selectedSurveyors);
+        // }
+
+        $data = $query->get();
 
         $labels = [];
         $percentages = [];
@@ -61,6 +71,12 @@ class IndustryPercentage extends ChartWidget
             'labels' => $labels,
         ];
     }
+
+    // protected function getFilters(): ?array
+    // {
+    //     $surveyors = DB::table('surveyors')->pluck('name')->toArray();
+    //     return array_merge(['all' => 'All'], $surveyors);
+    // }
 
     protected function getType(): string
     {

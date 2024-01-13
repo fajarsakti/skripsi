@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\SurveyResource\Pages;
 
 use App\Filament\Resources\SurveyResource;
+use App\Http\Controllers\OrderPDFController;
 use App\Models\Survey;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
@@ -13,6 +14,8 @@ use Filament\Notifications\Actions\Action;
 use Illuminate\Support\Facades\Log;
 use App\Models\Contract;
 use App\Models\Surveyor;
+use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
+use Barryvdh\DomPDF\PDF;
 
 class CreateSurvey extends CreateRecord
 {
@@ -51,8 +54,7 @@ class CreateSurvey extends CreateRecord
                 Notification::make()
                     ->title('Telah dilakukan survey')
                     ->success()
-                    ->send()
-                    ->body("Survey untuk kontrak $contractId dengan pemberi tugas $pemberiTugas sudah diselesaikan dengan ID survey $surveyId dan oleh surveyor $surveyorName pada $tanggalSurvey ")
+                    ->body("Survey untuk order $contractId dengan pemberi tugas $pemberiTugas sudah diselesaikan dengan ID survey $surveyId dan oleh surveyor $surveyorName pada $tanggalSurvey ")
                     ->actions([
                         Action::make('View')
                             ->button()

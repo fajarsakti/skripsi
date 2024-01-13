@@ -18,6 +18,7 @@ class Survey extends Model
     protected $fillable = [
         'contract_id',
         'surveyors_id',
+        'assignments_id',
         'pemilik_aset',
         'tanggal_survey',
         'assets_id',
@@ -39,5 +40,10 @@ class Survey extends Model
     public function assets(): BelongsTo
     {
         return $this->belongsTo(Asset::class);
+    }
+
+    public function assignments(): BelongsTo
+    {
+        return $this->belongsTo(Assignment::class);
     }
 }

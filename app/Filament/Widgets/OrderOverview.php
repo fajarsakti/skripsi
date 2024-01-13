@@ -27,6 +27,6 @@ class OrderOverview extends BaseWidget
 
     public static function canView(): bool
     {
-        return auth()->user()->role == 'admin';
+        return auth()->user()->role == 'admin' || auth()->user()->role == 'debitur';
     }
 }

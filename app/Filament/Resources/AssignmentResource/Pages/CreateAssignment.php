@@ -29,6 +29,8 @@ class CreateAssignment extends CreateRecord
 
         $surveyor = $assignment->surveyors->name;
 
+        $noPenugasan = $assignment->no_penugasan;
+
         $recipients = User::where('role', 'surveyor')->get();
 
         foreach ($recipients as $recipient) {
@@ -36,8 +38,7 @@ class CreateAssignment extends CreateRecord
                 Notification::make()
                     ->title('Surat tugas survey')
                     ->warning()
-                    ->send()
-                    ->body("Terdapat surat tugas dari $debitur untuk surveyor $surveyor, silahkan dilanjutkan ke proses survey")
+                    ->body("Terdapat surat tugas dari $debitur untuk surveyor $surveyor, dengan nomor penugasan KJPP$noPenugasan. silahkan dilanjutkan ke proses survey")
                     ->actions([
                         Action::make('View')
                             ->button()

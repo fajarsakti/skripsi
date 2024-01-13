@@ -11,6 +11,8 @@ class OrderTypePercentage extends ChartWidget
 
     protected static ?string $maxHeight = '250px';
 
+    // public ?string $filter = 'all';
+
     public static function getSort(): int
     {
         return static::$sort ?? 1;
@@ -32,15 +34,24 @@ class OrderTypePercentage extends ChartWidget
 
     protected function getData(): array
     {
-        // Menggunakan query untuk menghitung jumlah total aset
+        // $selectedSurveyors = $this->filter;
+
+        // Menggunakan query untuk menghitung jumlah tipe order
         $totalContractTypes = DB::table('contracts')->count();
 
-        // Menggunakan query untuk menghitung jumlah setiap jenis aset
-        $data = DB::table('contracts')
+        // Menggunakan query untuk menghitung jumlah setiap tipe order
+        $query = DB::table('contracts')
             ->join('contract_types', 'contract_types.id', '=', 'contracts.contract_types_id')
+            // ->join('surveyors', 'surveyors_id', '=', 'contracts.surveyors_id')
             ->select('contract_types.type', DB::raw('COUNT(*) as count'))
-            ->groupBy('contract_types.type')
-            ->get();
+            ->groupBy('contract_types.type');
+
+
+        // if ($selectedSurveyors != 'all') {
+        //     $query = $query->where('surveyors.id', $selectedSurveyors);
+        // }
+
+        $data = $query->get();
 
         $labels = [];
         $percentages = [];
@@ -50,12 +61,14 @@ class OrderTypePercentage extends ChartWidget
             $percentages[] = round($percentage, 2);
         }
 
+        // dd($data);
+
         return [
             'datasets' => [
                 [
                     'label' => 'Persentase Tujuan Order',
                     'data' => $percentages,
-                    'backgroundColor' => ['#FF5733', '#33FF57', '#5733FF', '#FFFF00'], // Warna untuk setiap tujuan kontrak
+                    'backgroundColor' => ['#FF5733', '#33FF57', '#5733FF', '#FFFF00'], // Warna untuk setiap tipe order
                 ],
             ],
             'labels' => $labels,
@@ -66,6 +79,12 @@ class OrderTypePercentage extends ChartWidget
     {
         return 'pie';
     }
+
+    // protected function getFilters(): ?array
+    // {
+    //     // $surveyors = DB::table('surveyors')->pluck('name')->toArray();
+    //     // return array_merge(['all' => 'All'], $surveyors);
+    // }
 
     public static function canView(): bool
     {

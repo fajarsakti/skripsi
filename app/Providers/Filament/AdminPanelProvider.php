@@ -79,6 +79,7 @@ class AdminPanelProvider extends PanelProvider
                         requiresCurrentPassword: true, // when false, the user can update their password without entering their current password. (default = true)
                     )
             )
+            ->brandLogo(asset('build/assets/logo.png'))
             ->databaseNotifications();
     }
 }

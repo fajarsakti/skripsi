@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Assignment;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Barryvdh\DomPDF\PDF as DomPDFPDF;
 
 class AssignmentPDFController extends Controller
 {
@@ -23,6 +22,8 @@ class AssignmentPDFController extends Controller
         ];
 
         $pdf = PDF::loadView('assignmentPDF', $data);
+
+        set_time_limit(300);
 
         return $pdf->stream('AssignmentLetter.pdf');
     }

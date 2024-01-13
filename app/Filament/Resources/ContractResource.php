@@ -46,6 +46,7 @@ class ContractResource extends Resource
 
     protected static ?string $modelLabel = 'Order';
 
+
     public static function getFormSchema(): array
     {
         $calculate = function ($get, $set) {
@@ -150,7 +151,7 @@ class ContractResource extends Resource
                             'In Progress' => 'In Progress',
                             'Batal' => 'Batal',
                         ])
-                        ->default('In Progress')
+                        ->default('Pending')
                         ->afterStateUpdated(function ($state, $get, $set) {
                             $selesaiKontrak = $get('selesai_kontrak');
                             $statusKontrak = $get('status_kontrak');
@@ -220,20 +221,24 @@ class ContractResource extends Resource
                     'Selesai' => 'success',
                     'In Progress' => 'warning',
                     'Batal' => 'danger',
+                    'Pending' => 'warning',
                 })
                 ->sortable()
                 ->label('Status Order')
-                ->default('In Progress'),
+                ->default('In Progress')
+                ->visible(fn (Get $get): bool => auth()->user()->role === 'admin'),
             Tables\Columns\TextColumn::make('tanggal_kontrak')
                 ->sortable()
                 ->label('Tanggal Order'),
             Tables\Columns\TextColumn::make('selesai_kontrak')
                 ->sortable()
-                ->label('Selesai Order'),
+                ->label('Selesai Order')
+                ->visible(fn (Get $get): bool => auth()->user()->role === 'admin'),
             Tables\Columns\TextColumn::make('durasi_kontrak')
                 ->sortable()
                 ->suffix(' hari')
-                ->label('Durasi Order'),
+                ->label('Durasi Order')
+                ->visible(fn (Get $get): bool => auth()->user()->role === 'admin'),
         ];
     }
 
@@ -263,14 +268,15 @@ class ContractResource extends Resource
             ])
             ->emptyStateActions([
                 Tables\Actions\CreateAction::make(),
-            ]);
+            ])
+            ->emptyStateHeading('No orders yet');
     }
 
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist
             ->schema([
-                SectionInfoList::make('Contract Information')
+                SectionInfoList::make('Order Information')
                     ->schema([
                         TextEntry::make('id')
                             ->label('Contract ID'),
@@ -296,7 +302,7 @@ class ContractResource extends Resource
                             ->label('Pemilik Aset'),
                         TextEntry::make('surveys.tanggal_survey')
                             ->label('Tanggal Survey'),
-                        TextEntry::make('contracts.assets.type')
+                        TextEntry::make('assets.type')
                             ->label('Jenis Aset'),
                         TextEntry::make('surveys.keterangan_aset')
                             ->label('Keterangan Aset'),
@@ -342,6 +348,11 @@ class ContractResource extends Resource
         return auth()->user()->role == 'debitur';
     }
 
+    public static function canDelete(Model $record): bool
+    {
+        return auth()->user()->role == 'admin';
+    }
+
     // public static function canViewAny(): bool
     // {
     //     return auth()->user()->role == 'admin' || auth()->user()->role == 'surveyor';
@@ -351,25 +362,4 @@ class ContractResource extends Resource
     {
         return ['pemberi_tugas', 'industries.type', 'contract_types.type', 'lokasi_proyek', 'tanggal_kontrak', 'selesai_kontrak'];
     }
-
-    // public static function getGlobalSearchResultDetails(Model $record): array
-    // {
-    //     return [
-    //         'Industry Type' => $record->industries->type,
-    //         'Contract Type' => $record->contract_types->type,
-    //         'Lokasi Proyek' => $record->lokasi_proyek,
-    //     ];
-    // }
-
-    // public function create()
-    // {
-    //     $survey = Survey::orderBy('created_at', 'desc')->first();
-    //     return view('contracts.create', ['surveyId' => $survey->id]);
-    // }
-
-    // public function show($id)
-    // {
-    //     $contract = Contract::findOrFail($id);
-    //     return view('view.contract', compact('contract'));
-    // }
 }

@@ -7,6 +7,7 @@ use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use App\Filament\Resources\ContractResource;
 use App\Models\Contract;
+use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Actions\Action;
 
@@ -46,11 +47,14 @@ class OngoingOrder extends BaseWidget
                     ->label('Jenis Industri')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('tanggal_kontrak')
+                    ->label('Tanggal Order')
+                    ->sortable()
             ]);
     }
 
     public static function canView(): bool
     {
-        return auth()->user()->role == 'admin';
+        return auth()->user()->role == 'admin' || auth()->user()->role == 'debitur';
     }
 }

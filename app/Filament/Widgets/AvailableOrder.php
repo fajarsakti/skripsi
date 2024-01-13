@@ -21,7 +21,7 @@ use FontLib\Table\Type\post;
 use App\Filament\Resources\SurveyResource;
 use Filament\Notifications\Notification;
 
-class AvailableContract extends BaseWidget
+class AvailableOrder extends BaseWidget
 {
     protected static ?int $sort = 2;
 
@@ -30,7 +30,8 @@ class AvailableContract extends BaseWidget
     public function table(Table $table): Table
     {
         return $table
-            ->query(ContractResource::getEloquentQuery())
+            ->query(ContractResource::getEloquentQuery()
+                ->where('status_kontrak', 'In Progress'))
             ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('id')
@@ -41,6 +42,9 @@ class AvailableContract extends BaseWidget
                     ->sortable(),
                 TextColumn::make('lokasi_proyek')
                     ->label('Lokasi Survey')
+                    ->sortable(),
+                TextColumn::make('assets.type')
+                    ->label('Jenis Aset')
                     ->sortable(),
                 TextColumn::make('contract_types.type')
                     ->label('Tujuan Kontrak')
@@ -64,7 +68,7 @@ class AvailableContract extends BaseWidget
                     })
                     ->label('Lakukan Survey')
                     ->action(function () {
-                        return redirect('/admin/surveys/create');
+                        return redirect('/dashboard/surveys/create');
                     })
                     ->requiresConfirmation()
                     ->modalDescription('Lakukan survey untuk kontrak ini?')

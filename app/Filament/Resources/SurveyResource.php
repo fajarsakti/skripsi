@@ -24,6 +24,7 @@ use Filament\Infolists\Infolist;
 use App\Filament\Resources\SurveyResource\Pages\ViewSurvey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use App\Models\Assignment;
 
 
 class SurveyResource extends Resource
@@ -69,18 +70,23 @@ class SurveyResource extends Resource
                             ->options(static::getInProgressContractsOptions()) // Use the custom method here
                             ->required()
                             ->label('Pemberi Tugas'),
-                        Forms\Components\Select::make('contracts.assets_id')
+                        Forms\Components\Select::make('assets_id')
                             ->options(static::getContractAsset())
                             ->required()
                             ->label('Jenis Aset'),
                     ])
-                    ->column(2),
+                    ->columns(2),
                 Section::make('Survey Fullfilment ')
                     ->schema([
                         Forms\Components\Select::make('surveyors_id')
                             ->options(Surveyor::all()->pluck('name', 'id')->toArray())
                             ->required()
                             ->label('Surveyor'),
+                        Forms\Components\Select::make('assignments_id')
+                            ->options(Assignment::all()->pluck('no_penugasan', 'id')->toArray())
+                            ->required()
+                            ->prefix('KJPP')
+                            ->label('Nomor Penugasan'),
                         Forms\Components\TextInput::make('pemilik_aset')
                             ->label('Pemilik Aset')
                             ->required(),
@@ -110,6 +116,11 @@ class SurveyResource extends Resource
                 Tables\Columns\TextColumn::make('id')
                     ->sortable()
                     ->label('Survey ID'),
+                Tables\Columns\TextColumn::make('assignments.no_penugasan')
+                    ->sortable()
+                    ->searchable()
+                    ->prefix('KJPP')
+                    ->label('Nomor Penugasan'),
                 Tables\Columns\TextColumn::make('surveyors.name')
                     ->sortable()
                     ->label('Surveyor'),
@@ -171,7 +182,7 @@ class SurveyResource extends Resource
                     ->label('Pemilik Aset'),
                 Infolists\Components\TextEntry::make('tanggal_survey')
                     ->label('Tanggal Survey'),
-                Infolists\Components\TextEntry::make('contracts.assets.type')
+                Infolists\Components\TextEntry::make('assets.type')
                     ->label('Jenis Aset'),
                 Infolists\Components\TextEntry::make('keterangan_aset')
                     ->label('Keterangan Aset'),

@@ -4,10 +4,13 @@ namespace App\Filament\Widgets;
 
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
 
 class OrderDuration extends ChartWidget
 {
     protected static ?string $heading = 'Order Completion Time Average';
+
+    public ?string $filter = 'all';
 
     public static function getSort(): int
     {
@@ -18,6 +21,8 @@ class OrderDuration extends ChartWidget
 
     protected function getData(): array
     {
+        $selectedTime = $this->filter;
+
         $query = DB::table('contracts')
             ->join('surveyors', 'surveyors.id', '=', 'contracts.surveyors_id')
             ->select(
@@ -25,6 +30,16 @@ class OrderDuration extends ChartWidget
                 DB::raw('AVG(CASE WHEN status_kontrak = "Selesai" THEN DATEDIFF(selesai_kontrak, tanggal_kontrak) ELSE NULL END) as average_duration')
             )
             ->groupBy('surveyors_id', 'surveyors.name');
+
+        if ($selectedTime == 'today') {
+            $query = $query->whereDate('tanggal_kontrak', Carbon::today());
+        } elseif ($selectedTime == 'week') {
+            $query = $query->whereBetween('tanggal_kontrak', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+        } elseif ($selectedTime == 'month') {
+            $query = $query->whereMonth('tanggal_kontrak', Carbon::now()->subMonth()->month);
+        } elseif ($selectedTime == 'year') {
+            $query = $query->whereYear('tanggal_kontrak', Carbon::now()->year);
+        }
 
         $data = $query->get();
 
@@ -42,6 +57,17 @@ class OrderDuration extends ChartWidget
                 ],
             ],
             'labels' => $labels,
+        ];
+    }
+
+    protected function getFilters(): ?array
+    {
+        return [
+            'today' => 'Today',
+            'week' => 'Last week',
+            'month' => 'Last month',
+            'year' => 'This year',
+            'all' => 'All'
         ];
     }
 

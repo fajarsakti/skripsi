@@ -68,4 +68,9 @@ class Contract extends Model
             $this->attributes['is_available'] = 0;
         }
     }
+
+    public function getAssetId()
+    {
+        return $this->asset_id;
+    }
 }
