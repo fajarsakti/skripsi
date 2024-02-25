@@ -9,6 +9,7 @@ use Filament\Tables\Table;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Actions\Action;
 use App\Models\Contract;
+use App\Models\User;
 use Filament\Notifications\Notification;
 use Filament\Widgets\TableWidget as BaseWidget;
 
@@ -23,6 +24,16 @@ class PendingOrder extends BaseWidget
         $order = Contract::find($id);
         $order->status_kontrak = "In Progress";
         $order->is_available = 1;
+        $order->save();
+
+        return redirect()->back();
+    }
+
+    public function batalkanOrder($id)
+    {
+        $order = Contract::find($id);
+        $order->status_kontrak = "Ditolak";
+        $order->is_available = 0;
         $order->save();
 
         return redirect()->back();
@@ -69,15 +80,46 @@ class PendingOrder extends BaseWidget
                     ->action(function ($record) {
                         $this->terimaOrder($record->id);
 
-                        Notification::make()
-                            ->title('Kontrak telah diterima')
-                            ->success()
-                            ->send();
+                        $recipients = User::where('role', 'debitur')->get();
+                        foreach ($recipients as $recipient) {
+                            $recipient->notify(
+                                Notification::make()
+                                    ->title('Order telah diterima')
+                                    ->success()
+                                    ->toDatabase($recipients)
+                            );
+                        }
                     })
                     ->requiresConfirmation()
                     ->modalDescription('Terima order ini?')
-                    ->modalSubmitActionLabel('Ya, terima order ini')
-            ]);
+                    ->modalSubmitActionLabel('Ya, terima order ini'),
+                Action::make('batalkanOrder')
+                    ->button()
+                    ->disabled(function (Contract $record) {
+                        return $record->is_available === 1 || $record->status_kontrak !== 'Pending';
+                    })
+                    ->label('Tolak Order')
+                    ->action(function ($record) {
+                        $this->batalkanOrder($record->id);
+
+                        $recipients = User::where('role', 'debitur')->get();
+
+                        foreach ($recipients as $recipient) {
+                            $recipient->notify(
+                                Notification::make()
+                                    ->title('Order ditolak')
+                                    ->body('Order anda tidak memenuhi kriteria yang dibutuhkan untuk dilanjutkan ke proses survey. Silahkan melakukan order kembali')
+                                    ->danger()
+                                    ->toDatabase($recipients)
+                            );
+                        }
+                    })
+                    ->requiresConfirmation()
+                    ->modalDescription('Tolak order ini?')
+                    ->modalSubmitActionLabel('Ya, tolak order ini')
+                    ->color('danger')
+            ])
+            ->emptyStateHeading('No orders yet');
     }
 
     public static function canView(): bool

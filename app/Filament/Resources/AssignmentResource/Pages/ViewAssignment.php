@@ -21,7 +21,7 @@ class ViewAssignment extends ViewRecord
     protected function getActions(): array
     {
         return [
-            ButtonAction::make('Export pdf')
+            ButtonAction::make('View pdf')
                 ->url(fn ($record) => route('assignment.pdf', $record->id))
                 ->openUrlInNewTab(),
         ];

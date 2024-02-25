@@ -25,6 +25,8 @@ use App\Filament\Resources\SurveyResource\Pages\ViewSurvey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use App\Models\Assignment;
+use Filament\Infolists\Components\Section as SectionInfoList;
+use Filament\Tables\Filters\SelectFilter;
 
 
 class SurveyResource extends Resource
@@ -76,7 +78,7 @@ class SurveyResource extends Resource
                             ->label('Jenis Aset'),
                     ])
                     ->columns(2),
-                Section::make('Survey Fullfilment ')
+                Section::make('Survey Fulfillment ')
                     ->schema([
                         Forms\Components\Select::make('surveyors_id')
                             ->options(Surveyor::all()->pluck('name', 'id')->toArray())
@@ -123,6 +125,7 @@ class SurveyResource extends Resource
                     ->label('Nomor Penugasan'),
                 Tables\Columns\TextColumn::make('surveyors.name')
                     ->sortable()
+                    ->searchable()
                     ->label('Surveyor'),
                 Tables\Columns\TextColumn::make('pemilik_aset')
                     ->searchable()
@@ -153,7 +156,16 @@ class SurveyResource extends Resource
                     ->label('Harga Aset'),
             ])
             ->filters([
-                //
+                SelectFilter::make('surveyors_id')
+                    ->multiple()
+                    ->label('Surveyor')
+                    ->options(
+                        function () {
+                            $data = Surveyor::all();
+
+                            return $data->pluck('name', 'id')->toArray();
+                        }
+                    )
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -174,28 +186,32 @@ class SurveyResource extends Resource
     {
         return $infolist
             ->schema([
-                Infolists\Components\TextEntry::make('id')
-                    ->label('Survey ID'),
-                Infolists\Components\TextEntry::make('surveyors.name')
-                    ->label('Surveyor'),
-                Infolists\Components\TextEntry::make('pemilik_aset')
-                    ->label('Pemilik Aset'),
-                Infolists\Components\TextEntry::make('tanggal_survey')
-                    ->label('Tanggal Survey'),
-                Infolists\Components\TextEntry::make('assets.type')
-                    ->label('Jenis Aset'),
-                Infolists\Components\TextEntry::make('keterangan_aset')
-                    ->label('Keterangan Aset'),
-                Infolists\Components\ImageEntry::make('gambar_aset')
-                    ->label('Gambar Aset'),
-                Infolists\Components\TextEntry::make('harga_aset')
-                    ->label('Harga Aset')
-                    ->prefix('Rp. ')
-                    ->numeric(
-                        decimalPlaces: 0,
-                        decimalSeparator: '.',
-                        thousandsSeparator: '.',
-                    )
+                SectionInfolist::make('Survey Information')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('id')
+                            ->label('Survey ID'),
+                        Infolists\Components\TextEntry::make('surveyors.name')
+                            ->label('Surveyor'),
+                        Infolists\Components\TextEntry::make('pemilik_aset')
+                            ->label('Pemilik Aset'),
+                        Infolists\Components\TextEntry::make('tanggal_survey')
+                            ->label('Tanggal Survey'),
+                        Infolists\Components\TextEntry::make('assets.type')
+                            ->label('Jenis Aset'),
+                        Infolists\Components\TextEntry::make('keterangan_aset')
+                            ->label('Keterangan Aset'),
+                        Infolists\Components\ImageEntry::make('gambar_aset')
+                            ->label('Gambar Aset'),
+                        Infolists\Components\TextEntry::make('harga_aset')
+                            ->label('Harga Aset')
+                            ->prefix('Rp. ')
+                            ->numeric(
+                                decimalPlaces: 0,
+                                decimalSeparator: '.',
+                                thousandsSeparator: '.',
+                            )
+                    ])
+                    ->columns(2)
             ]);
     }
 
@@ -226,10 +242,10 @@ class SurveyResource extends Resource
         return auth()->user()->role == 'surveyor';
     }
 
-    public static function canEdit(Model $record): bool
-    {
-        return auth()->user()->role == 'surveyor';
-    }
+    // public static function canEdit(Model $record): bool
+    // {
+    //     return auth()->user()->role == 'surveyor';
+    // }
 
     public static function getGloballySearchableAttributes(): array
     {

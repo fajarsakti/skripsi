@@ -53,6 +53,10 @@ class FinishedOrder extends BaseWidget
                     ->label('Jenis Industri')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('assets.type')
+                    ->label('Jenis Aset')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('tanggal_kontrak')
                     ->label('Tanggal Order')
                     ->sortable(),
@@ -77,7 +81,8 @@ class FinishedOrder extends BaseWidget
                         Surveyor::all()->pluck('name', 'id')->toArray()
                     ])
                     ->multiple(),
-            ]);
+            ])
+            ->emptyStateHeading('No orders yet');
     }
 
     public static function canView(): bool

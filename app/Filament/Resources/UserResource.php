@@ -33,8 +33,7 @@ class UserResource extends Resource
                     ->label('E-Mail')
                     ->required(),
                 Forms\Components\TextInput::make('role')
-                    ->label('Role')
-                    ->required(),
+                    ->label('Role'),
                 Forms\Components\TextInput::make('phone')
                     ->tel()
                     ->telRegex('/^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\.\/0-9]*$/')
@@ -56,6 +55,14 @@ class UserResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->label('E-Mail'),
+                Tables\Columns\TextColumn::make('phone')
+                    ->sortable()
+                    ->searchable()
+                    ->label('Phone'),
+                Tables\Columns\TextColumn::make('address')
+                    ->sortable()
+                    ->searchable()
+                    ->label('Address'),
                 Tables\Columns\TextColumn::make('role')
                     ->sortable()
                     ->label('Role'),
@@ -94,6 +101,11 @@ class UserResource extends Resource
     }
 
     public static function canViewAny(): bool
+    {
+        return auth()->user()->role == 'admin';
+    }
+
+    public static function canCreate(): bool
     {
         return auth()->user()->role == 'admin';
     }

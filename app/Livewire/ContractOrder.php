@@ -68,10 +68,10 @@ class ContractOrder extends Component implements HasForms
         foreach ($recipients as $recipient) {
             $recipient->notify(
                 Notification::make()
-                    ->title('Kontrak baru telah ditambahkan')
+                    ->title('Order baru telah ditambahkan')
                     ->send()
                     ->warning()
-                    ->body("Terdapat kontrak baru dari $pemberiTugas yang harus dilakukan survey")
+                    ->body("Terdapat Order baru dari $pemberiTugas")
                     ->actions([
                         Action::make('View')
                             ->button()

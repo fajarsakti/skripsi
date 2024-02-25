@@ -26,7 +26,7 @@ class OrderPDFController extends Controller
             'contract' => $contract,
         ];
 
-        dd($data);
+        // dd($data);
 
         $pdf = PDF::loadView('contractPDF', $data);
 

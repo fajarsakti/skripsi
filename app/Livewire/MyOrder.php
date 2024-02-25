@@ -35,7 +35,6 @@ class MyOrder extends Component implements HasTable, HasForms
         return $table
             ->query(
                 ContractResource::getEloquentQuery()
-                    ->where('status_kontrak', 'In Progress'),
             )
             ->defaultSort('created_at', 'desc')
             ->columns([
@@ -61,6 +60,7 @@ class MyOrder extends Component implements HasTable, HasForms
                         'Selesai' => 'success',
                         'In Progress' => 'warning',
                         'Batal' => 'danger',
+                        'Pending' => 'Pending'
                     })
                     ->sortable()
                     ->label('Status Order')
@@ -83,10 +83,10 @@ class MyOrder extends Component implements HasTable, HasForms
                         foreach ($recipients as $recipient) {
                             $recipient->notify(
                                 Notification::make()
-                                    ->title('Kontrak telah dibatalkan')
+                                    ->title('Order telah dibatalkan')
                                     ->danger()
                                     ->send()
-                                    ->body("Kontrak dengan ID $contractId dari $pemberiTugas telah dibatalkan")
+                                    ->body("Order dengan ID $contractId dari $pemberiTugas telah dibatalkan")
                                     ->actions([
                                         NotificationAction::make('View')
                                             ->button()
@@ -106,7 +106,7 @@ class MyOrder extends Component implements HasTable, HasForms
             ->emptyStateHeading('No orders yet');
     }
 
-    public static function canView(): bool
+    public static function canViewAny(): bool
     {
         return auth()->user()->role == 'debitur';
     }

@@ -60,8 +60,6 @@ class AssetPercentage extends ChartWidget
             $percentages[] = round($percentage, 2);
         }
 
-        // dd($data);
-
         return [
             'datasets' => [
                 [

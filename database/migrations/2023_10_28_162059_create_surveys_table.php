@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('contracts_id')->constrained('contracts')->cascadeOnDelete();
             $table->foreignId('surveyors_id')->constrained('surveyors')->cascadeOnDelete();
+            $table->foreignId('assignments_id')->constrained('assignments')->cascadeOnDelete();
             $table->string('pemilik_aset');
             $table->date('tanggal_survey');
             $table->foreignId('assets_id')->constrained('assets')->cascadeOnDelete();

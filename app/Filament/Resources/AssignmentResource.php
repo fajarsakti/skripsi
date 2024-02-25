@@ -23,6 +23,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Infolists;
 use Filament\Infolists\Components\Section as SectionInfoList;
 use Illuminate\Database\Eloquent\Model;
+use Filament\Tables\Filters\SelectFilter;
 
 class AssignmentResource extends Resource
 {
@@ -99,6 +100,7 @@ class AssignmentResource extends Resource
                         Infolists\Components\TextEntry::make('tanggal_penugasan')
                             ->label('Tanggal Penugasan'),
                     ])
+                    ->columns(2)
             ]);
     }
 
@@ -127,7 +129,16 @@ class AssignmentResource extends Resource
                     ->label('Tanggal Penugasan')
             ])
             ->filters([
-                //
+                SelectFilter::make('surveyors_id')
+                    ->multiple()
+                    ->label('Surveyor')
+                    ->options(
+                        function () {
+                            $data = Surveyor::all();
+
+                            return $data->pluck('name', 'id')->toArray();
+                        }
+                    )
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

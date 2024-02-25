@@ -30,7 +30,11 @@ use Filament\Infolists\Components\Section as SectionInfoList;
 use Filament\Tables\Filters\SelectFilter;
 use App\Models\User;
 use Filament\Forms\Get;
+use Filament\Tables\Actions\ExportBulkAction;
 use Illuminate\Database\Eloquent\Model;
+use App\Filament\Exports\ContractExporter;
+use Filament\Forms\Components\DatePicker;
+use Filament\Tables\Filters\Filter;
 
 class ContractResource extends Resource
 {
@@ -45,7 +49,6 @@ class ContractResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
 
     protected static ?string $modelLabel = 'Order';
-
 
     public static function getFormSchema(): array
     {
@@ -135,6 +138,7 @@ class ContractResource extends Resource
                         ->required()
                         ->reactive()
                         ->afterStateUpdated($calculate)
+                        ->afterOrEqual('today')
                         ->rules('bail', 'before_or_equal_if_filled:selesai_kontrak'),
                     Forms\Components\DatePicker::make('selesai_kontrak')
                         ->label('Selesai Order')
@@ -222,10 +226,11 @@ class ContractResource extends Resource
                     'In Progress' => 'warning',
                     'Batal' => 'danger',
                     'Pending' => 'warning',
+                    'Ditolak' => 'danger',
                 })
                 ->sortable()
                 ->label('Status Order')
-                ->default('In Progress')
+                // ->default('In Progress')
                 ->visible(fn (Get $get): bool => auth()->user()->role === 'admin'),
             Tables\Columns\TextColumn::make('tanggal_kontrak')
                 ->sortable()
@@ -253,8 +258,27 @@ class ContractResource extends Resource
                     ->options([
                         'Batal' => 'Batal',
                         'In Progress' => 'In Progress',
-                        'Selesai' => 'Selesai'
+                        'Selesai' => 'Selesai',
+                        'Pending' => 'Pending'
+                    ]),
+                Filter::make('created_at')
+                    ->form([
+                        DatePicker::make('created_from'),
+                        DatePicker::make('created_until')
+                            ->default(now()),
                     ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['created_from'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['created_until'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                            );
+                    })
+
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -264,6 +288,8 @@ class ContractResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    ExportBulkAction::make()
+                        ->exporter(ContractExporter::class)
                 ]),
             ])
             ->emptyStateActions([

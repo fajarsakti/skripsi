@@ -47,10 +47,15 @@ class OngoingOrder extends BaseWidget
                     ->label('Jenis Industri')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('assets.type')
+                    ->label('Jenis Aset')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('tanggal_kontrak')
                     ->label('Tanggal Order')
                     ->sortable()
-            ]);
+            ])
+            ->emptyStateHeading('No orders yet');
     }
 
     public static function canView(): bool
