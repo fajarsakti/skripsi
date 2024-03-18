@@ -63,18 +63,18 @@ class User extends Authenticatable implements HasAvatar
         return $this->avatar_url ? Storage::url($this->avatar_url) : null;
     }
 
-    public function isAdmin()
-    {
-        return $this->role === 'Admin';
-    }
+    // public function isAdmin()
+    // {
+    //     return $this->role === 'Admin';
+    // }
 
-    public function isSurveyor()
-    {
-        return $this->role === 'Surveyor';
-    }
+    // public function isSurveyor()
+    // {
+    //     return $this->role === 'Surveyor';
+    // }
 
-    public function isDebitur()
-    {
-        return $this->role === 'Debitur';
-    }
+    // public function isDebitur()
+    // {
+    //     return $this->role === 'Debitur';
+    // }
 }

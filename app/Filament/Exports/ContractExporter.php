@@ -17,20 +17,30 @@ class ContractExporter extends Exporter
         return [
             ExportColumn::make('id')
                 ->label('ID'),
-            ExportColumn::make('surveyors.name'),
-            ExportColumn::make('surveys_id'),
-            ExportColumn::make('pemberi_tugas'),
-            ExportColumn::make('industries.id'),
-            ExportColumn::make('contract_types.id'),
-            ExportColumn::make('assets.id'),
-            ExportColumn::make('lokasi_proyek'),
-            ExportColumn::make('tanggal_kontrak'),
-            ExportColumn::make('selesai_kontrak'),
-            ExportColumn::make('status_kontrak'),
-            ExportColumn::make('durasi_kontrak'),
-            ExportColumn::make('is_available'),
-            ExportColumn::make('created_at'),
-            ExportColumn::make('updated_at'),
+            ExportColumn::make('surveyors.name')
+                ->label('Surveyor'),
+            ExportColumn::make('surveys_id')
+                ->label('ID Survey'),
+            ExportColumn::make('pemberi_tugas')
+                ->label('Debitur'),
+            ExportColumn::make('industries.type')
+                ->label('Jenis Industri'),
+            ExportColumn::make('contract_types.type')
+                ->label('Tujuan Order'),
+            ExportColumn::make('assets.type')
+                ->label('Jenis Aset'),
+            ExportColumn::make('surveys.keterangan_aset')
+                ->label('Keterangan Aset'),
+            ExportColumn::make('lokasi_proyek')
+                ->label('Lokasi Survey'),
+            ExportColumn::make('tanggal_kontrak')
+                ->label('Tanggal Order'),
+            ExportColumn::make('selesai_kontrak')
+                ->label('Selesai Order'),
+            ExportColumn::make('status_kontrak')
+                ->label('Status Order'),
+            ExportColumn::make('durasi_kontrak')
+                ->label('Durasi Penyelesaian Order'),
         ];
     }
 
@@ -47,6 +57,6 @@ class ContractExporter extends Exporter
 
     public function getFileName(Export $export): string
     {
-        return "orders-summary-{$export->getKey()}.csv";
+        return "orders-summary-{$export->getKey()}";
     }
 }

@@ -219,6 +219,9 @@ class ContractResource extends Resource
             Tables\Columns\TextColumn::make('assets.type')
                 ->searchable()
                 ->label('Jenis Aset'),
+            Tables\Columns\TextColumn::make('surveys.keterangan_aset')
+                ->searchable()
+                ->label('Keterangan Aset'),
             Tables\Columns\TextColumn::make('status_kontrak')
                 ->badge()
                 ->color(fn (string $state): string => match ($state) {
@@ -259,7 +262,8 @@ class ContractResource extends Resource
                         'Batal' => 'Batal',
                         'In Progress' => 'In Progress',
                         'Selesai' => 'Selesai',
-                        'Pending' => 'Pending'
+                        'Pending' => 'Pending',
+                        'Ditolak' => 'Ditolak'
                     ]),
                 Filter::make('created_at')
                     ->form([

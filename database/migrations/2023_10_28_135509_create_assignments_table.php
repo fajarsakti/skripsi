@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('assignments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('contracts_id')->constrained('contracts')->cascadeOnDelete();
+            $table->unsignedBigInteger('contracts_id');
             $table->string('no_penugasan')->unique();
-            $table->foreignId('surveyors_id')->constrained('surveyors')->cascadeOnDelete();
+            $table->unsignedBigInteger('surveyors_id');
             $table->date('tanggal_penugasan');
             $table->timestamps();
         });

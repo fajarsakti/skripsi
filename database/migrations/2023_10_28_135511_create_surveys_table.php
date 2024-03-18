@@ -13,14 +13,14 @@ return new class extends Migration
     {
         Schema::create('surveys', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('contracts_id')->constrained('contracts')->cascadeOnDelete();
+            $table->foreignId('contract_id')->constrained('contracts')->cascadeOnDelete();
             $table->foreignId('surveyors_id')->constrained('surveyors')->cascadeOnDelete();
             $table->foreignId('assignments_id')->constrained('assignments')->cascadeOnDelete();
             $table->string('pemilik_aset');
             $table->date('tanggal_survey');
             $table->foreignId('assets_id')->constrained('assets')->cascadeOnDelete();
             $table->char('keterangan_aset');
-            $table->string('gambar_aset');
+            $table->string('gambar_aset')->nullable();
             $table->char('harga_aset');
             $table->timestamps();
         });

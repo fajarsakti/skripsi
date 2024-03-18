@@ -57,6 +57,9 @@ class FinishedOrder extends BaseWidget
                     ->label('Jenis Aset')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('surveys.keterangan_aset')
+                    ->label('Keterangan Aset')
+                    ->searchable(),
                 TextColumn::make('tanggal_kontrak')
                     ->label('Tanggal Order')
                     ->sortable(),

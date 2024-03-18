@@ -13,18 +13,18 @@ return new class extends Migration
     {
         Schema::create('contracts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('surveyors_id')->constrained('surveyors')->cascadeOnDelete();
-            $table->foreignId('surveys_id')->constrained('surveys')->cascadeOnDelete();
+            $table->unsignedBigInteger('surveyors_id')->nullable();
+            $table->unsignedBigInteger('surveys_id')->nullable();
             $table->string('pemberi_tugas');
             $table->foreignId('industries_id')->constrained('industries')->cascadeOnDelete();
             $table->foreignId('contract_types_id')->constrained('contract_types')->cascadeOnDelete();
             $table->foreignId('assets_id')->constrained('assets')->cascadeOnDelete();
             $table->string('lokasi_proyek');
             $table->date('tanggal_kontrak');
-            $table->date('selesai_kontrak');
-            $table->string('status_kontrak');
-            $table->integer('durasi_kontrak');
-            $table->boolean('is_available');
+            $table->date('selesai_kontrak')->nullable();
+            $table->string('status_kontrak')->default('Pending');
+            $table->integer('durasi_kontrak')->nullable();
+            $table->boolean('is_available')->default(0);
             $table->timestamps();
         });
     }
